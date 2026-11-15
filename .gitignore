@@ -1,0 +1,7 @@
+node_modules/
+*.webm
+*.mp4
+test-results/
+playwright-report/
+recordings/
+.DS_Store

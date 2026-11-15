@@ -1,0 +1,35 @@
+body { margin: 0; font: 15px/1.4 system-ui, sans-serif; color: #1d1d1f; background: #fafafa; }
+header, main, footer { padding: 12px 24px; }
+h1 { margin: 0; font-size: 22px; }
+.sub { margin: 2px 0 0; color: #666; }
+.list { list-style: none; margin: 0; padding: 0; max-width: 960px; }
+.row { display: grid; grid-template-columns: 90px 50px 1fr 200px 90px; gap: 12px; align-items: center; min-height: 44px; padding: 0 12px; border-bottom: 1px solid #e5e5e5; background: #fff; }
+.row .id { font-family: ui-monospace, monospace; }
+.row.sev1 .sev { color: #b00020; font-weight: 600; }
+.row.sev2 .sev { color: #a15c00; }
+.row time { color: #555; font-variant-numeric: tabular-nums; }
+.loader, .empty { padding: 16px 0; color: #666; font-style: italic; }
+.ack-action { display: flex; justify-content: flex-end; }
+button.ack {
+  background: #0071e3;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 4px 10px;
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+button.ack:hover {
+  background: #0077ed;
+}
+button.ack:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.acked {
+  color: #2e7d32;
+  font-weight: 600;
+  font-size: 13px;
+}
+footer { color: #777; font-size: 13px; margin-top: 24px; border-top: 1px solid #e5e5e5; }
