@@ -2,11 +2,13 @@ import { fetchIncidents, ack, acks } from './api.js';
 
 const board = document.querySelector('[data-testid="board"]');
 const list = document.querySelector('[data-testid="incident-list"]');
+const newBar = document.querySelector('[data-testid="new-bar"]');
 
 const incidentsMap = new Map();
 const ackedIds = new Set();
+const pendingIncidents = [];
+let initialLoaded = false;
 let isRefreshing = false;
-let lastRenderSignature = '';
 
 function formatLocalTime(iso) {
   return new Date(iso).toLocaleString();
@@ -29,48 +31,58 @@ function renderIncidentRow(inc) {
   </li>`;
 }
 
-function updateBoard(incoming = []) {
-  const loader = document.querySelector('[data-testid="loader"]');
-  if (loader) {
-    loader.remove();
-  }
-
-  for (const inc of incoming) {
-    incidentsMap.set(inc.id, inc);
-  }
-
-  const all = Array.from(incidentsMap.values()).sort(
-    (a, b) => new Date(b.openedAt).getTime() - new Date(a.openedAt).getTime(),
-  );
-
+function showEmptyState() {
+  list.innerHTML = '';
   let emptyEl = document.querySelector('[data-testid="empty"]');
-  if (all.length === 0) {
-    if (lastRenderSignature !== 'empty') {
-      list.innerHTML = '';
-      if (!emptyEl) {
-        emptyEl = document.createElement('div');
-        emptyEl.setAttribute('data-testid', 'empty');
-        emptyEl.className = 'empty';
-        emptyEl.textContent = 'No incidents tonight';
-        board.appendChild(emptyEl);
-      }
-      lastRenderSignature = 'empty';
-    }
-    return;
+  if (!emptyEl) {
+    emptyEl = document.createElement('div');
+    emptyEl.setAttribute('data-testid', 'empty');
+    emptyEl.className = 'empty';
+    emptyEl.textContent = 'No incidents tonight';
+    board.appendChild(emptyEl);
   }
+}
 
+function clearEmptyState() {
+  const emptyEl = document.querySelector('[data-testid="empty"]');
   if (emptyEl) {
     emptyEl.remove();
   }
+}
 
-  const signature = all
-    .map((i) => `${i.id}:${ackedIds.has(i.id) || acks.some((a) => a.id === i.id)}`)
-    .join('|');
-
-  if (signature !== lastRenderSignature) {
-    list.innerHTML = all.map(renderIncidentRow).join('');
-    lastRenderSignature = signature;
+function updateNewBar() {
+  if (!newBar) return;
+  if (pendingIncidents.length > 0) {
+    newBar.textContent = `${pendingIncidents.length} new`;
+    newBar.style.display = 'block';
+  } else {
+    newBar.style.display = 'none';
   }
+}
+
+if (newBar) {
+  newBar.addEventListener('click', () => {
+    if (pendingIncidents.length === 0) return;
+
+    // Sort pending incidents newest first
+    pendingIncidents.sort(
+      (a, b) => new Date(b.openedAt).getTime() - new Date(a.openedAt).getTime(),
+    );
+
+    // Prepend each pending incident into DOM and incidentsMap
+    const htmlToPrepend = pendingIncidents
+      .map((inc) => {
+        incidentsMap.set(inc.id, inc);
+        return renderIncidentRow(inc);
+      })
+      .join('');
+
+    list.insertAdjacentHTML('afterbegin', htmlToPrepend);
+
+    // Clear pending queue and hide new-bar
+    pendingIncidents.length = 0;
+    updateNewBar();
+  });
 }
 
 list.addEventListener('click', async (e) => {
@@ -90,14 +102,6 @@ list.addEventListener('click', async (e) => {
     if (actionContainer) {
       actionContainer.innerHTML = `<span data-testid="acked" class="acked">Acked</span>`;
     }
-
-    // Refresh signature to reflect acked state
-    const all = Array.from(incidentsMap.values()).sort(
-      (a, b) => new Date(b.openedAt).getTime() - new Date(a.openedAt).getTime(),
-    );
-    lastRenderSignature = all
-      .map((i) => `${i.id}:${ackedIds.has(i.id) || acks.some((a) => a.id === i.id)}`)
-      .join('|');
   } catch (err) {
     console.error(`Failed to ack ${id}:`, err);
     btn.disabled = false;
@@ -110,7 +114,38 @@ async function refresh() {
   isRefreshing = true;
   try {
     const page = await fetchIncidents();
-    updateBoard(page.incidents);
+    const incoming = page.incidents || [];
+
+    const loader = document.querySelector('[data-testid="loader"]');
+    if (loader) {
+      loader.remove();
+    }
+
+    if (!initialLoaded) {
+      initialLoaded = true;
+      if (incoming.length === 0) {
+        showEmptyState();
+        return;
+      }
+      clearEmptyState();
+      for (const inc of incoming) {
+        incidentsMap.set(inc.id, inc);
+      }
+      const sorted = Array.from(incidentsMap.values()).sort(
+        (a, b) => new Date(b.openedAt).getTime() - new Date(a.openedAt).getTime(),
+      );
+      list.innerHTML = sorted.map(renderIncidentRow).join('');
+      return;
+    }
+
+    // After initial load: the list holds still!
+    // Check for any newly arrived incidents
+    for (const inc of incoming) {
+      if (!incidentsMap.has(inc.id) && !pendingIncidents.some((p) => p.id === inc.id)) {
+        pendingIncidents.push(inc);
+      }
+    }
+    updateNewBar();
   } catch (err) {
     console.error('Refresh error:', err);
   } finally {

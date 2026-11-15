@@ -9,6 +9,22 @@ h1 { margin: 0; font-size: 22px; }
 .row.sev2 .sev { color: #a15c00; }
 .row time { color: #555; font-variant-numeric: tabular-nums; }
 .loader, .empty { padding: 16px 0; color: #666; font-style: italic; }
+.new-bar {
+  display: none;
+  background: #0071e3;
+  color: #fff;
+  text-align: center;
+  padding: 10px 16px;
+  border-radius: 6px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  font-weight: 500;
+  max-width: 960px;
+  box-sizing: border-box;
+}
+.new-bar:hover {
+  background: #0077ed;
+}
 .ack-action { display: flex; justify-content: flex-end; }
 button.ack {
   background: #0071e3;

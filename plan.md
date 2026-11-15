@@ -13,7 +13,7 @@ what just broke and takes it.
 
 ## Requirements
 
-- **R1** New incidents appear live at the top of the list, newest first.
+- **R1** The list holds still while on screen; new incidents are announced in a "N new" bar (`data-testid="new-bar"`) and brought in on click, newest first.
 - **R2** Each incident row has an **Ack** button. Ack sends the ack (`api.ack(id)`) and marks the row acked.
 - **R3** Show a loader until incidents load.
 - **R4** The board refreshes itself every 2 seconds while open.
@@ -27,6 +27,7 @@ what just broke and takes it.
 | `board` | the board's main area |
 | `loader` | the loader (gone once incidents load) |
 | `empty` | what shows when there are no incidents |
+| `new-bar` | the "N new" bar that brings new incidents in on click |
 | `incident-list` | the list |
 | `incident-row` | one incident row, with `data-id="<incident id>"` |
 | `ack` | the Ack button in a row |
@@ -35,4 +36,4 @@ what just broke and takes it.
 
 ## Done
 
-Every issue in `issues/` delivered, deployed to a public https address, and shown working.
+Every issue in `issues/` delivered, updated per product decision, deployed to a public https address, and shown working.
